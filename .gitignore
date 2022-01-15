@@ -1,0 +1,7 @@
+*.aux
+*.diff
+*.log
+*.txt
+tree
+proj
+randGeneoTree
