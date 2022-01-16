@@ -4,49 +4,115 @@
 
 using namespace std;
 
-int parse_inverse(vector<int> *v, vector<vector<int>> *a, int edg_qnt) {
-	int start, end;
-	for (int i = 0; i < edg_qnt;  i++) {
-		cin >> end;
-		cin >> start;
-		start--;
-		end--;
-		(*v)[start]++;
-		if ((*v)[start] <= 2) {
-			((*a)[start]).push_back(end);
-		}
-		else {
-			cout << 0 << endl;
-			return -1;
-		}
+typedef struct {
+	size_t v;
+	size_t e;
+	vector<int> *l;
+} graph;
+
+typedef enum { WHITE = 0, GRAY = 1, BLACK = 2 } color;
+
+void parse_graph(graph *g) {
+	cin >> g->v >> g->e;
+
+	g->l = new vector<int>[g->v];
+
+	int x, y;
+	for (size_t i = 0; i < g->e; i++) {
+		cin >> x >> y;
+		x--; y--;
+		g->l[x].push_back(y);
 	}
-	return 0;
 }
 
-void* bfs(int start, vector<int> *vt, vector<vector<int>> *a, int vert_qnt, int edg_qnt) {
-	int u;
-	int v;
-	vector<int> color;
-	vector<int> dist;
-	vector<int> pred;
-	queue<int> q;
-	for (int i = 0; i < vert_qnt; i++) {
-		color.push_back(0);
-		dist.push_back(0);
-		pred.push_back(-1);
+void print_graph(graph *g) {
+	for (size_t v = 0; v < g->v; v++) {
+		cout << v + 1 << ": ";
+		for (size_t e = 0; e < g->l[v].size(); e++) {
+			cout << g->l[v][e] + 1 << " ";
+		}
+		cout << endl;
 	}
-	color[start] = 1;
-	q.push(start);
+}
+
+bool dfs(graph *g, int u, color *colors) {
+	colors[u] = GRAY;
+
+	for (int v: g->l[u]) {
+		if (colors[v] == WHITE) {
+			if (!dfs(g, v, colors)) {
+				return false;
+			}
+		} else if (colors[v] == GRAY) {
+			return false;
+		}
+	}
+
+	colors[u] = BLACK;
+
+	return true;
+}
+
+bool valid_tree(graph *g) {
+	color colors[g->v];
+
+	for (size_t u = 0; u < g->v; u++) {
+		colors[u] = WHITE;
+	}
+
+	for (size_t u = 0; u < g->v; u++) {
+		if (g->l[u].size() > 2) {
+			return false;
+		}
+		if (colors[u] == WHITE) {
+			if (!dfs(g, u, colors)) {
+				return false;
+			}
+		}
+	}
+
+	return true;
+}
+
+void inverse_graph(graph *g, graph *inverse) {
+	inverse->v = g->v;
+	inverse->e = g->e;
+	inverse->l = new vector<int>[g->v];
+
+	int y;
+	for (size_t v = 0; v < g->v; v++) {
+		for (size_t e = 0; e < g->l[v].size(); e++) {
+			y = g->l[v][e];
+			inverse->l[y].push_back(v);
+		}
+	}
+}
+
+void bfs(int s, graph *g) {
+	color colors[g->v];
+	int d[g->v];
+	int pi[g->v];
+	queue<int> q;
+
+	for (size_t v = 0; v < g->v; v++) {
+		colors[v] = WHITE;
+		d[v] = 0;
+		pi[v] = -1;
+	}
+
+	colors[s] = GRAY;
+	q.push(s);
+
+	int u, v;
 	while(!q.empty()) {
-		u = q.front(); 
+		u = q.front();
 		q.pop();
-		for (int i = 0; i < ((*a)[u]).size(); i++) {
-			v = (*a)[u][i];
-			if (color[v] == 0) {
-				color[v] = 1;
-				(*vt)[v]++;
-				dist[v] = dist[u] + 1;
-				pred[v] = u;
+		for (size_t e = 0; e < g->l[u].size(); e++) {
+			v = g->l[u][e];
+			if (colors[v] == WHITE) {
+				colors[v] = GRAY;
+				d[v] = d[u] + 1;
+				pi[v] = u;
 				q.push(v);
 			}
 		}
@@ -54,25 +120,26 @@ void* bfs(int start, vector<int> *vt, vector<vector<int>> *a, int vert_qnt, int 
 }
 
 int main() {
-	vector<int> vertexes;
-	vector<vector<int>> adjecent;
-	int v1, v2, vert_qnt, edg_qnt;
-	cin >> v1;
-	cin >> v2;
-	cin >> vert_qnt;
-	cin >> edg_qnt;
-	v1--;
-	v2--;
-	for (int i = 0; i < vert_qnt; i++) {
-		vertexes.push_back(0);
-	}
-	if (parse_inverse(&vertexes, &adjecent, edg_qnt) == -1) {
+	int v1, v2;
+	cin >> v1 >> v2;
+	v1--; v2--;
+
+	graph g;
+	parse_graph(&g);
+
+	if (!valid_tree(&g)) {
+		cout << 0 << endl;
 		return 0;
 	}
-	for (int i = 0; i < vert_qnt; i++) {
-		vertexes[i] = 0;
-	}
-	bfs(v1, &vertexes, &adjecent, vert_qnt, edg_qnt);
-	bfs(v2, &vertexes, &adjecent, vert_qnt, edg_qnt);
+
+	graph inverse;
+	inverse_graph(&g, &inverse);
+
+	bfs(v1, &inverse);
+	bfs(v2, &inverse);
+
+	delete[] g.l;
+	delete[] inverse.l;
+
 	return 0;
 }
