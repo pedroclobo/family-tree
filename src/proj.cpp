@@ -12,16 +12,16 @@ typedef struct {
 
 typedef enum { WHITE = 0, GRAY = 1, BLACK = 2 } color;
 
-void parse_graph(graph *g) {
-	cin >> g->v >> g->e;
+void parse_transpose_graph(graph *transpose) {
+	cin >> transpose->v >> transpose->e;
 
-	g->l = new vector<int>[g->v];
+	transpose->l = new vector<int>[transpose->v];
 
 	int x, y;
-	for (size_t i = 0; i < g->e; i++) {
-		cin >> x >> y;
+	for (size_t i = 0; i < transpose->e; i++) {
+		scanf("%d %d", &x, &y);
 		x--; y--;
-		g->l[x].push_back(y);
+		transpose->l[y].push_back(x);
 	}
 }
 
@@ -74,20 +74,6 @@ bool valid_tree(graph *g) {
 	return true;
 }
 
-void inverse_graph(graph *g, graph *inverse) {
-	inverse->v = g->v;
-	inverse->e = g->e;
-	inverse->l = new vector<int>[g->v];
-
-	int y;
-	for (size_t v = 0; v < g->v; v++) {
-		for (size_t e = 0; e < g->l[v].size(); e++) {
-			y = g->l[v][e];
-			inverse->l[y].push_back(v);
-		}
-	}
-}
-
 void bfs(int s, graph *g) {
 	color colors[g->v];
 	int d[g->v];
@@ -124,22 +110,23 @@ int main() {
 	cin >> v1 >> v2;
 	v1--; v2--;
 
-	graph g;
-	parse_graph(&g);
+	graph transpose;
+	parse_transpose_graph(&transpose);
 
-	if (!valid_tree(&g)) {
+	if (!valid_tree(&transpose)) {
 		cout << 0 << endl;
 		return 0;
 	}
 
-	graph inverse;
-	inverse_graph(&g, &inverse);
+	int commons[transpose.v];
+	for (size_t v = 0; v < transpose.v; v++) {
+		commons[v] = 0;
+	}
 
-	bfs(v1, &inverse);
-	bfs(v2, &inverse);
+	bfs(v1, &transpose);
+	bfs(v2, &transpose);
 
-	delete[] g.l;
-	delete[] inverse.l;
+	delete[] transpose.l;
 
 	return 0;
 }
