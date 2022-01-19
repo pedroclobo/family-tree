@@ -7,15 +7,13 @@ using namespace std;
 typedef struct {
 	size_t v;
 	size_t e;
-	vector<int> *l;
+	vector<vector<int>> l;
 } graph;
-
-typedef enum { WHITE = 0, GRAY = 1, BLACK = 2 } color;
 
 void parse_transpose_graph(graph *transpose) {
 	cin >> transpose->v >> transpose->e;
 
-	transpose->l = new vector<int>[transpose->v];
+	transpose->l.resize(transpose->v);
 
 	int x, y;
 	for (size_t i = 0; i < transpose->e; i++) {
@@ -35,74 +33,78 @@ void print_graph(graph *g) {
 	}
 }
 
-bool dfs(graph *g, int u, color *colors) {
-	colors[u] = GRAY;
+bool dfs(graph *g, int u, int *colors) {
+	colors[u] = 1;
 
 	for (int v: g->l[u]) {
-		if (colors[v] == WHITE) {
+		if (colors[v] == 0) {
 			if (!dfs(g, v, colors)) {
 				return false;
 			}
-		} else if (colors[v] == GRAY) {
+		} else if (colors[v] == 1) {
 			return false;
 		}
 	}
 
-	colors[u] = BLACK;
+	colors[u] = 2;
 
 	return true;
 }
 
 bool valid_tree(graph *g) {
-	color colors[g->v];
+	int *colors = (int*) malloc(sizeof(int) * g->v);
 
 	for (size_t u = 0; u < g->v; u++) {
-		colors[u] = WHITE;
+		colors[u] = 0;
 	}
 
 	for (size_t u = 0; u < g->v; u++) {
 		if (g->l[u].size() > 2) {
+			free(colors);
 			return false;
 		}
-		if (colors[u] == WHITE) {
+		if (colors[u] == 0) {
 			if (!dfs(g, u, colors)) {
+				free(colors);
 				return false;
 			}
 		}
 	}
 
+	free(colors);
+
 	return true;
 }
 
-void bfs(int s, graph *g) {
-	color colors[g->v];
-	int d[g->v];
-	int pi[g->v];
+void bfs(int s, graph *g, int *commons, int *preds) {
+	int *colors = (int*) malloc(sizeof(int) * g->v);
 	queue<int> q;
 
 	for (size_t v = 0; v < g->v; v++) {
-		colors[v] = WHITE;
-		d[v] = 0;
-		pi[v] = -1;
+		colors[v] = 0;
 	}
 
-	colors[s] = GRAY;
+	colors[s] = 1;
 	q.push(s);
+	commons[s]++;
 
 	int u, v;
-	while(!q.empty()) {
+	while (!q.empty()) {
 		u = q.front();
 		q.pop();
 		for (size_t e = 0; e < g->l[u].size(); e++) {
 			v = g->l[u][e];
-			if (colors[v] == WHITE) {
-				colors[v] = GRAY;
-				d[v] = d[u] + 1;
-				pi[v] = u;
+			if (colors[v] == 0) {
+				colors[v] = 1;
+				preds[v] = u;
+				commons[v]++;
 				q.push(v);
 			}
 		}
+		colors[u] = 1;
 	}
+
+	free(colors);
 }
 
 int main() {
@@ -111,6 +113,7 @@ int main() {
 	v1--; v2--;
 
 	graph transpose;
+
 	parse_transpose_graph(&transpose);
 
 	if (!valid_tree(&transpose)) {
@@ -118,15 +121,32 @@ int main() {
 		return 0;
 	}
 
-	int commons[transpose.v];
+	int *commons = (int*) malloc(sizeof(int) * transpose.v);
+	int *pred = (int*) malloc(sizeof(int) * transpose.v);
+
 	for (size_t v = 0; v < transpose.v; v++) {
 		commons[v] = 0;
+		pred[v] = -1;
 	}
 
-	bfs(v1, &transpose);
-	bfs(v2, &transpose);
+	bfs(v1, &transpose, commons, pred);
+	bfs(v2, &transpose, commons, pred);
 
-	delete[] transpose.l;
+	int num_commons = 0;
+	for (size_t v = 0; v < transpose.v; v++) {
+		if (commons[v] == 2 && commons[pred[v]] != 2) {
+			printf("%lu ", v + 1);
+			num_commons++;
+		}
+	}
+
+	if (num_commons == 0) {
+		cout << "-";
+	}
+	cout << endl;
+
+	free(commons);
+	free(pred);
 
 	return 0;
 }
