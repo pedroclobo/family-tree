@@ -10,16 +10,18 @@ typedef struct {
 	vector<vector<int>> l;
 } graph;
 
-void parse_transpose_graph(graph *transpose) {
+void parse_transpose_graph(graph *transpose, vector<vector<int>> *normal) {
 	cin >> transpose->v >> transpose->e;
 
 	transpose->l.resize(transpose->v);
+	(*normal).resize(transpose->v);
 
 	int x, y;
 	for (size_t i = 0; i < transpose->e; i++) {
 		scanf("%d %d", &x, &y);
 		x--; y--;
 		transpose->l[y].push_back(x);
+		(*normal)[x].push_back(y);
 	}
 }
 
@@ -76,7 +78,7 @@ bool valid_tree(graph *g) {
 	return true;
 }
 
-void bfs(int s, graph *g, int *commons, int *preds) {
+void bfs(int s, graph *g, int *commons) {
 	int *colors = (int*) malloc(sizeof(int) * g->v);
 	queue<int> q;
 
@@ -96,7 +98,6 @@ void bfs(int s, graph *g, int *commons, int *preds) {
 			v = g->l[u][e];
 			if (colors[v] == 0) {
 				colors[v] = 1;
-				preds[v] = u;
 				commons[v]++;
 				q.push(v);
 			}
@@ -114,7 +115,9 @@ int main() {
 
 	graph transpose;
 
-	parse_transpose_graph(&transpose);
+	vector<vector<int>> normal;
+
+	parse_transpose_graph(&transpose, &normal);
 
 	if (!valid_tree(&transpose)) {
 		cout << 0 << endl;
@@ -122,27 +125,31 @@ int main() {
 	}
 
 	int *commons = (int*) malloc(sizeof(int) * transpose.v);
-	int *pred1 = (int*) malloc(sizeof(int) * transpose.v);
-	int *pred2 = (int*) malloc(sizeof(int) * transpose.v);
 
 	for (size_t v = 0; v < transpose.v; v++) {
 		commons[v] = 0;
-		pred1[v] = -1;
-	}
-	for (size_t v = 0; v < transpose.v; v++) {
-		commons[v] = 0;
-		pred2[v] = -1;
 	}
 
-	bfs(v1, &transpose, commons, pred1);
-	bfs(v2, &transpose, commons, pred2);
+
+	bfs(v1, &transpose, commons);
+	bfs(v2, &transpose, commons);
 
 	int num_commons = 0;
 	for (size_t v = 0; v < transpose.v; v++) {
-		if (commons[v] == 2 && commons[pred1[v]] != 2 && commons[pred2[v]] != 2) {
+		size_t size_adj = normal[v].size(); 
+		bool valid = true;
+		if (size_adj == 0) {
+			valid = false;
+		}
+		for (size_t i = 0; i < size_adj; i++) {
+			if (!(commons[v] == 2 && commons[normal[v][i]] != 2 && valid)) {
+				valid = false;
+			}
+		}
+		if (valid) {
 			printf("%lu ", v + 1);
 			num_commons++;
-		}
+		}	
 	}
 
 	if (num_commons == 0) {
@@ -151,8 +158,6 @@ int main() {
 	cout << endl;
 
 	free(commons);
-	free(pred1);
-	free(pred2);
 
 	return 0;
 }
