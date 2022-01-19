@@ -122,19 +122,24 @@ int main() {
 	}
 
 	int *commons = (int*) malloc(sizeof(int) * transpose.v);
-	int *pred = (int*) malloc(sizeof(int) * transpose.v);
+	int *pred1 = (int*) malloc(sizeof(int) * transpose.v);
+	int *pred2 = (int*) malloc(sizeof(int) * transpose.v);
 
 	for (size_t v = 0; v < transpose.v; v++) {
 		commons[v] = 0;
-		pred[v] = -1;
+		pred1[v] = -1;
+	}
+	for (size_t v = 0; v < transpose.v; v++) {
+		commons[v] = 0;
+		pred2[v] = -1;
 	}
 
-	bfs(v1, &transpose, commons, pred);
-	bfs(v2, &transpose, commons, pred);
+	bfs(v1, &transpose, commons, pred1);
+	bfs(v2, &transpose, commons, pred2);
 
 	int num_commons = 0;
 	for (size_t v = 0; v < transpose.v; v++) {
-		if (commons[v] == 2 && commons[pred[v]] != 2) {
+		if (commons[v] == 2 && commons[pred1[v]] != 2 && commons[pred2[v]] != 2) {
 			printf("%lu ", v + 1);
 			num_commons++;
 		}
@@ -146,7 +151,8 @@ int main() {
 	cout << endl;
 
 	free(commons);
-	free(pred);
+	free(pred1);
+	free(pred2);
 
 	return 0;
 }
