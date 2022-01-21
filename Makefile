@@ -1,6 +1,5 @@
 CC = g++
 CFLAGS = -std=c++11 -O3 -Wall -lm
-#CFLAGS = -std=c++11 -g -Wall -lm -fsanitize=address -fsanitize=leak
 MFLAGS += --no-print-directory
 
 all:: proj
