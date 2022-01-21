@@ -1,0 +1,85 @@
+\documentclass[12pt, letterpaper]{article}
+\usepackage[margin=3cm]{geometry}
+\usepackage{multicol}
+\usepackage{amsmath}
+\usepackage{tikz}
+\usepackage{pgfplots}
+\usepackage{float}
+\pgfplotsset{width=7.5cm}
+
+\begin{document}
+
+\begin{center}
+	{\LARGE{Relatório 2º projeto ASA 2021/2022}}\\[\baselineskip]
+\end{center}
+
+\begin{flushleft}
+	\textbf{Grupo:} t20\\
+	\textbf{Alunos:} Guilherme Pascoal (99079), Pedro Lobo (99115)
+\end{flushleft}
+
+
+\section{Descrição do Problema e da Solução}
+
+O problema apresentado tem como objetivo, dada uma árvore genealógica
+representada por um grafo, determinar o ancestral comum mais próximo entre dois
+nós.
+
+De modo a verificar que uma árvore é válida, processa-se o grafo transposto,
+verificado que este novo grafo se trata de um grafo acíclico dirigido em que cada
+nó não tem mais do que 2 vizinhos diretos.
+Esta verificação é feita com uma DFS: se for encontrado um arco para trás,
+estamos na presença de um ciclo, o que torna a árvore inválida. De igual modo,
+se um nó tiver mais do que 2 vizinhos diretos, invalida-se a árvore.
+
+Caso o grafo corresponda a uma árvore válida, atravessa-se o grafo e marca-se os
+vértices atingíveis a partir dos dois nós dados. Estes vértices, atingíveis por
+ambos os nós, correspondem aos ancestrais comuns. Representando o grafo que
+contém apenas os ancestrais comuns, os ancestrais comuns mais próximos
+correspondem àqueles que têm um \emph{out degree} igual a 0.
+
+
+\section{Análise Teórica}
+
+\begin{itemize}
+	\item Leitura dos dados de entrada. $\mathcal{O}(V + E)$
+	\item Validação da árvore. $\mathcal{O}(V + E)$
+	\item Validação da árvore, com recurso a DFS. $\mathcal{O}(V + E)$
+	\item Marcação dos nós atingíveis através do 1º nó, com recurso a BFS. $\mathcal{O}(V + E)$
+	\item Marcação dos nós atingíveis através do 2º nó, com recurso a BFS. $\mathcal{O}(V + E)$
+	\item Criação do grafo constituído pelos nós comuns. $\mathcal{O}(V + E)$
+	\item Verificação e apresentação dos ancestrais comuns mais próximos. $\mathcal{O}(V)$
+\end{itemize}
+Complexidade global: $\mathcal{O}(V + E)$
+
+
+\section{Avaliação Experimental dos Resultados}
+
+Foram geradas sequências aleatórias de tamanho ? a ? em incrementos de ?.
+Abaixo é possível observar o gráfico:
+
+\begin{figure}[H]
+	\centering
+	\begin{tikzpicture}[scale=1.0]
+		\begin{axis}[
+			xmin=0, xmax=1000000,
+			ymin=0, ymax=10,
+			xlabel={Tamanho da sequência},
+			ylabel={Tempo(s)},
+			]
+			\addplot[blue,mark=square] table{../benchmarks/output.txt};
+		\end{axis}
+	\end{tikzpicture}
+\end{figure}
+
+O gráfico está de acordo com a análise teórica realizada.
+
+
+\section{Bibliografia}
+
+\begin{itemize}
+	\item Thomas H. Cormen, Charles E. Leiserson, Ronald L. Rivest, Clifford Stein (2009)
+	\emph{Introduction to Algorithms, Third Edition}, The MIT Press.
+\end{itemize}
+
+\end{document}
