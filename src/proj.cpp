@@ -1,6 +1,7 @@
 #include<iostream>
 #include<vector>
 #include<queue>
+#include<algorithm>
 
 using namespace std;
 
@@ -10,54 +11,61 @@ typedef struct {
 	vector<vector<int>> l;
 } graph;
 
-void parse_transpose_graph(graph *transpose, vector<vector<int>> *normal) {
+typedef enum { WHITE = 0, GRAY = 1, BLACK = 2 } color;
+
+void parse_transpose_graph(graph *transpose) {
 	cin >> transpose->v >> transpose->e;
 
 	transpose->l.resize(transpose->v);
-	(*normal).resize(transpose->v);
 
 	int x, y;
-	for (size_t i = 0; i < transpose->e; i++) {
+	for (size_t e = 0; e < transpose->e; e++) {
 		scanf("%d %d", &x, &y);
 		x--; y--;
 		transpose->l[y].push_back(x);
-		(*normal)[x].push_back(y);
 	}
 }
 
-void print_graph(graph *g) {
-	for (size_t v = 0; v < g->v; v++) {
-		cout << v + 1 << ": ";
-		for (size_t e = 0; e < g->l[v].size(); e++) {
-			cout << g->l[v][e] + 1 << " ";
+void build_common_graph(graph *commons, graph *transpose, int *visited) {
+	commons->v = transpose->v;
+	commons->e = transpose->e;
+	commons->l.resize(transpose->v);
+
+	int y;
+	for (size_t v = 0; v < transpose->v; v++) {
+		if (visited[v] == 2) {
+			for (size_t e = 0; e < transpose->l[v].size(); e++) {
+				y = transpose->l[v][e];
+				if (visited[y] == 2) {
+					commons->l[y].push_back(v);
+				}
+			}
 		}
-		cout << endl;
 	}
 }
 
-bool dfs(graph *g, int u, int *colors) {
-	colors[u] = 1;
+bool tree_dfs_visit(graph *g, int u, color *colors) {
+	colors[u] = GRAY;
 
 	for (int v: g->l[u]) {
-		if (colors[v] == 0) {
-			if (!dfs(g, v, colors)) {
+		if (colors[v] == WHITE) {
+			if (!tree_dfs_visit(g, v, colors)) {
 				return false;
 			}
-		} else if (colors[v] == 1) {
+		} else if (colors[v] == GRAY) {
 			return false;
 		}
 	}
 
-	colors[u] = 2;
+	colors[u] = BLACK;
 
 	return true;
 }
 
 bool valid_tree(graph *g) {
-	int *colors = (int*) malloc(sizeof(int) * g->v);
-
+	color *colors = (color*) malloc(sizeof(color) * g->v);
 	for (size_t u = 0; u < g->v; u++) {
-		colors[u] = 0;
+		colors[u] = WHITE;
 	}
 
 	for (size_t u = 0; u < g->v; u++) {
@@ -65,8 +73,8 @@ bool valid_tree(graph *g) {
 			free(colors);
 			return false;
 		}
-		if (colors[u] == 0) {
-			if (!dfs(g, u, colors)) {
+		if (colors[u] == WHITE) {
+			if (!tree_dfs_visit(g, u, colors)) {
 				free(colors);
 				return false;
 			}
@@ -78,17 +86,17 @@ bool valid_tree(graph *g) {
 	return true;
 }
 
-void bfs(int s, graph *g, int *commons) {
-	int *colors = (int*) malloc(sizeof(int) * g->v);
-	queue<int> q;
-
+void bfs(int s, graph *g, int *visited) {
+	color *colors = (color*) malloc(sizeof(color) * g->v);
 	for (size_t v = 0; v < g->v; v++) {
-		colors[v] = 0;
+		colors[v] = WHITE;
 	}
 
-	colors[s] = 1;
+	colors[s] = GRAY;
+	visited[s]++;
+
+	queue<int> q;
 	q.push(s);
-	commons[s]++;
 
 	int u, v;
 	while (!q.empty()) {
@@ -97,12 +105,12 @@ void bfs(int s, graph *g, int *commons) {
 		for (size_t e = 0; e < g->l[u].size(); e++) {
 			v = g->l[u][e];
 			if (colors[v] == 0) {
-				colors[v] = 1;
-				commons[v]++;
+				colors[v] = GRAY;
+				visited[v]++;
 				q.push(v);
 			}
 		}
-		colors[u] = 1;
+		colors[u] = BLACK;
 	}
 
 	free(colors);
@@ -114,50 +122,38 @@ int main() {
 	v1--; v2--;
 
 	graph transpose;
-
-	vector<vector<int>> normal;
-
-	parse_transpose_graph(&transpose, &normal);
+	parse_transpose_graph(&transpose);
 
 	if (!valid_tree(&transpose)) {
 		cout << 0 << endl;
 		return 0;
 	}
 
-	int *commons = (int*) malloc(sizeof(int) * transpose.v);
-
+	int *visited = (int*) malloc(transpose.v * sizeof(int));
 	for (size_t v = 0; v < transpose.v; v++) {
-		commons[v] = 0;
+		visited[v] = 0;
 	}
 
+	bfs(v1, &transpose, visited);
+	bfs(v2, &transpose, visited);
 
-	bfs(v1, &transpose, commons);
-	bfs(v2, &transpose, commons);
+	graph commons;
+	build_common_graph(&commons, &transpose, visited);
 
-	int num_commons = 0;
+	int num_visited = 0;
 	for (size_t v = 0; v < transpose.v; v++) {
-		size_t size_adj = normal[v].size(); 
-		bool valid = true;
-		if (size_adj == 0) {
-			valid = false;
+		if (visited[v] == 2 && commons.l[v].size() == 0) {
+			cout << v + 1 << " ";
+			num_visited++;
 		}
-		for (size_t i = 0; i < size_adj; i++) {
-			if (!(commons[v] == 2 && commons[normal[v][i]] != 2 && valid)) {
-				valid = false;
-			}
-		}
-		if (valid) {
-			printf("%lu ", v + 1);
-			num_commons++;
-		}	
 	}
 
-	if (num_commons == 0) {
+	if (num_visited == 0) {
 		cout << "-";
 	}
 	cout << endl;
 
-	free(commons);
+	free(visited);
 
 	return 0;
 }
