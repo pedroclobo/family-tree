@@ -35,8 +35,9 @@ se um nó tiver mais do que 2 vizinhos diretos, invalida-se a árvore.
 Caso o grafo corresponda a uma árvore válida, atravessa-se o grafo e marca-se os
 vértices atingíveis a partir dos dois nós dados. Estes vértices, atingíveis por
 ambos os nós, correspondem aos ancestrais comuns. Representando o grafo que
-contém apenas os ancestrais comuns, os ancestrais comuns mais próximos
-correspondem àqueles que têm um \emph{out degree} igual a 0.
+contém apenas os ancestrais comuns através do grafo não transposto, os
+ancestrais comuns mais próximos correspondem àqueles que têm um
+\emph{out degree} igual a 0.
 
 
 \section{Análise Teórica}
@@ -55,15 +56,15 @@ Complexidade global: $\mathcal{O}(V + E)$
 
 \section{Avaliação Experimental dos Resultados}
 
-Foram geradas sequências aleatórias de tamanho ? a ? em incrementos de ?.
+Foram geradas sequências aleatórias de tamanho 1 a 1000001 em incrementos de 50000.
 Abaixo é possível observar o gráfico:
 
 \begin{figure}[H]
 	\centering
 	\begin{tikzpicture}[scale=1.0]
 		\begin{axis}[
-			xmin=0, xmax=1000000,
-			ymin=0, ymax=10,
+			xmin=0, xmax=1000001,
+			ymin=0, ymax=0.8,
 			xlabel={Tamanho da sequência},
 			ylabel={Tempo(s)},
 			]
