@@ -22,42 +22,43 @@
 \section{Descrição do Problema e da Solução}
 
 O problema apresentado tem como objetivo, dada uma árvore genealógica
-representada por um grafo, determinar o ancestral comum mais próximo entre dois
-nós.
+representada por um grafo, determinar se este representa uma árvore válida e,
+se sim, determinar o ancestral comum mais próximo entre dois nós.\\
 
 De modo a verificar que uma árvore é válida, processa-se o grafo transposto,
 verificado que este novo grafo se trata de um grafo acíclico dirigido em que cada
 nó não tem mais do que 2 vizinhos diretos.
 Esta verificação é feita com uma DFS: se for encontrado um arco para trás,
 estamos na presença de um ciclo, o que torna a árvore inválida. De igual modo,
-se um nó tiver mais do que 2 vizinhos diretos, invalida-se a árvore.
+se um nó tiver mais do que 2 vizinhos diretos, que representam mais do que 2
+ancestrais diretos no grafo original, este é invalidado.\\
 
 Caso o grafo corresponda a uma árvore válida, atravessa-se o grafo e marca-se os
 vértices atingíveis a partir dos dois nós dados. Estes vértices, atingíveis por
-ambos os nós, correspondem aos ancestrais comuns. Representando o grafo que
-contém apenas os ancestrais comuns através do grafo não transposto, os
-ancestrais comuns mais próximos correspondem àqueles que têm um
-\emph{out degree} igual a 0.
+ambos os nós, correspondem aos ancestrais comuns. De seguida, representa-se o
+grafo formado apenas pelos ancestrais comuns através do grafo original. Os
+ancestrais comuns mais próximos correspondem àqueles que, neste último grafo
+não têm nenhum descendente, ou seja, têm um \emph{out degree} igual a 0.\\
 
 
 \section{Análise Teórica}
 
 \begin{itemize}
 	\item Leitura dos dados de entrada. $\mathcal{O}(V + E)$
-	\item Validação da árvore. $\mathcal{O}(V + E)$
 	\item Validação da árvore, com recurso a DFS. $\mathcal{O}(V + E)$
 	\item Marcação dos nós atingíveis através do 1º nó, com recurso a BFS. $\mathcal{O}(V + E)$
 	\item Marcação dos nós atingíveis através do 2º nó, com recurso a BFS. $\mathcal{O}(V + E)$
-	\item Criação do grafo constituído pelos nós comuns. $\mathcal{O}(V + E)$
-	\item Verificação e apresentação dos ancestrais comuns mais próximos. $\mathcal{O}(V)$
+	\item Criação do grafo constituído pelos nós comuns, percorrendo todos os vértices e arestas. $\mathcal{O}(V + E)$
+	\item Iteração sobre todos os vértices, apresentando apenas os ancestrais comuns mais próximos. $\mathcal{O}(V)$
 \end{itemize}
 Complexidade global: $\mathcal{O}(V + E)$
 
 
 \section{Avaliação Experimental dos Resultados}
 
-Foram geradas sequências aleatórias de tamanho 1 a 1000001 em incrementos de 50000.
-Abaixo é possível observar o gráfico:
+Foram gerados grafos aleatórios de tamanho 1 a 1000001 em incrementos de 50000.
+Por tamanho do grafo, entende-se a soma do número de vértices com o número de
+arestas. Abaixo é possível observar o gráfico:
 
 \begin{figure}[H]
 	\centering
@@ -65,7 +66,7 @@ Abaixo é possível observar o gráfico:
 		\begin{axis}[
 			xmin=0, xmax=1000001,
 			ymin=0, ymax=0.8,
-			xlabel={Tamanho da sequência},
+			xlabel={Tamanho do grafo (V+E)},
 			ylabel={Tempo(s)},
 			]
 			\addplot[blue,mark=square] table{../benchmarks/output.txt};
@@ -73,7 +74,9 @@ Abaixo é possível observar o gráfico:
 	\end{tikzpicture}
 \end{figure}
 
-O gráfico está de acordo com a análise teórica realizada.
+O gráfico revela que o tempo de execução do algoritmo cresce linearmente com a
+soma do número de vértices com o número de arestas do grafo, o que seria de
+esperar de acordo com a análise teórica realizada.\\
 
 
 \section{Bibliografia}
